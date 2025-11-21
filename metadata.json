@@ -1,0 +1,5 @@
+{
+  "name": "TikTok AI Architect",
+  "description": "A SaaS MVP for generating TikTok video plans using Gemini AI. Includes script generation, visual planning, and backend code reference.",
+  "requestFramePermissions": []
+}
