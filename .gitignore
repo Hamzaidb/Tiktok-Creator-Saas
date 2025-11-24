@@ -12,6 +12,40 @@ dist
 dist-ssr
 *.local
 
+.env
+node_modules/
+.env.*.local
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+# Build output
+build/
+# Dependency directories
+node_modules/   
+# Optional npm cache directory
+.npm
+.pnpm-store/
+# Optional eslint cache 
+.eslintcache
+# Optional REPL history
+.node_repl_history
+
+package-lock.json
+
+# Le dossier temporaire créé par votre script main.py
+backend/temp/
+backend/output_*.mp4
+backend/outputs/
+backend/temp_images/
+temp/
+output_*.mp4
+
+venv/
+.venv/
+env/
+backend/venv/
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

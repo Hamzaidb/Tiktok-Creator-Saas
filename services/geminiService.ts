@@ -1,14 +1,24 @@
 import { GoogleGenAI, Type } from "@google/genai";
-import { VideoPlan, Scene } from "../types";
+import { VideoPlan } from "../types";
 
-// Initialize Gemini Client
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+// On supprime l'initialisation globale qui fait planter le site
+// const ai = new GoogleGenAI({ apiKey: process.env.API_KEY }); <--- C'EST CA QUI PLANTE
 
 export const generateVideoPlan = async (
   topic: string,
   includeVoice: boolean,
   includeSubtitles: boolean
 ): Promise<VideoPlan> => {
+  
+  // On initialise l'IA SEULEMENT quand on clique sur le bouton
+  const apiKey = process.env.API_KEY // Supporte les deux formats
+  
+  if (!apiKey) {
+    alert("Clé API manquante ! Vérifiez votre fichier .env");
+    throw new Error("API Key missing");
+  }
+
+  const ai = new GoogleGenAI({ apiKey: apiKey });
   
   const prompt = `
     You are an expert TikTok Video Architect. 
@@ -57,7 +67,6 @@ export const generateVideoPlan = async (
 
     const data = JSON.parse(text);
     
-    // Add IDs for React keys
     const scenesWithIds = data.scenes.map((s: any, index: number) => ({
       ...s,
       id: index,
@@ -74,10 +83,15 @@ export const generateVideoPlan = async (
 };
 
 export const generatePreviewImage = async (prompt: string): Promise<string> => {
-  // Using Gemini to generate a preview image for the frontend validation step
   try {
+    // Même chose ici, on initialise l'IA localement pour éviter les crashs au démarrage
+    const apiKey = process.env.API_KEY;
+    if (!apiKey) return `https://picsum.photos/seed/${Math.random()}/1080/1920`;
+
+    const ai = new GoogleGenAI({ apiKey: apiKey });
+
     const response = await ai.models.generateImages({
-      model: 'imagen-3.0-generate-002', // Using Imagen model for better visuals if available, otherwise fallback or handle error
+      model: 'imagen-3.0-generate-002', 
       prompt: `${prompt}. High quality, photorealistic, TikTok vertical format style, 9:16 aspect ratio`,
       config: {
         numberOfImages: 1,
@@ -90,11 +104,9 @@ export const generatePreviewImage = async (prompt: string): Promise<string> => {
         return `data:image/jpeg;base64,${base64}`;
     }
     
-    // Fallback if Imagen fails or not enabled: Use picsum
     return `https://picsum.photos/seed/${Math.random()}/1080/1920`;
 
   } catch (e) {
-    // Fallback on error (likely model access)
     console.warn("Image generation failed, using placeholder", e);
     return `https://picsum.photos/seed/${encodeURIComponent(prompt).slice(0, 10)}/200/300`;
   }

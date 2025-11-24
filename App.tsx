@@ -3,13 +3,16 @@ import { InputStage } from './components/InputStage';
 import { PlanEditor } from './components/PlanEditor';
 import { ResultStage } from './components/ResultStage';
 import { AppState, VideoPlan, GenerationOptions } from './types';
-import { generateVideoPlan, generatePreviewImage } from './services/geminiService';
+import { generateVideoPlan } from './services/geminiService'; // generatePreviewImage n'est plus utilisé ici
 import { Loader2 } from 'lucide-react';
 
 const App: React.FC = () => {
   const [appState, setAppState] = useState<AppState>(AppState.INPUT);
   const [plan, setPlan] = useState<VideoPlan | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  
+  // --- CORRECTION : ON DÉCLARE LA VARIABLE MANQUANTE ICI ---
+  const [videoUrl, setVideoUrl] = useState<string | null>(null);
 
   const handleInputSubmit = async (options: GenerationOptions) => {
     setIsLoading(true);
@@ -41,34 +44,37 @@ const App: React.FC = () => {
     setAppState(AppState.GENERATING_VIDEO);
 
     try {
-      // 1. Generate mock images for the frontend preview using Gemini/Imagen
-      // In a real app, we would send the JSON to the Python backend here.
-      
-      const scenesWithImages = await Promise.all(
-        plan.scenes.map(async (scene) => {
-           // We generate images in parallel for the preview
-           const imageUrl = await generatePreviewImage(scene.visual_prompt);
-           return { ...scene, generated_image_url: imageUrl };
-        })
-      );
+      const videoRequest = {
+        scenes: plan.scenes,
+        include_voice: true,
+        include_subtitles: true
+      };
 
-      setPlan({ ...plan, scenes: scenesWithImages });
+      // On attend la réponse du Python (ça peut prendre 10-15 secondes)
+      const response = await fetch('http://127.0.0.1:8000/generate-video', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(videoRequest),
+      });
+
+      const data = await response.json();
       
-      // Simulate processing time for "Assembly"
-      setTimeout(() => {
-         setAppState(AppState.SUCCESS);
-         setIsLoading(false);
-      }, 2000);
+      if (data.video_url) {
+        setVideoUrl(data.video_url); // Maintenant cette ligne fonctionne !
+        setAppState(AppState.SUCCESS);
+      }
 
     } catch (error) {
         console.error(error);
+        alert("Erreur lors de la création de la vidéo");
+    } finally {
         setIsLoading(false);
-        alert("Error generating assets");
     }
   };
 
   const handleReset = () => {
     setPlan(null);
+    setVideoUrl(null); // On remet aussi la vidéo à zéro
     setAppState(AppState.INPUT);
   };
 
@@ -124,7 +130,7 @@ const App: React.FC = () => {
             )}
 
             {appState === AppState.SUCCESS && plan && (
-                <ResultStage plan={plan} onReset={handleReset} />
+                <ResultStage plan={plan} onReset={handleReset} videoUrl={videoUrl} />
             )}
         </main>
       </div>

@@ -11,9 +11,10 @@ export default defineConfig(({ mode }) => {
       },
       plugins: [react()],
       define: {
-        'process.env.API_KEY': JSON.stringify(env.GEMINI_API_KEY),
-        'process.env.GEMINI_API_KEY': JSON.stringify(env.GEMINI_API_KEY)
-      },
+        // Si la clé n'existe pas, on met une chaîne vide "" pour éviter le crash "process not defined"
+        'process.env.API_KEY': JSON.stringify(env.GEMINI_API_KEY || ""),
+        'process.env.GEMINI_API_KEY': JSON.stringify(env.GEMINI_API_KEY || "")
+    },
       resolve: {
         alias: {
           '@': path.resolve(__dirname, '.'),

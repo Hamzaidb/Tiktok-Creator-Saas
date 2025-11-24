@@ -4,9 +4,9 @@ import App from './App';
 import { GoogleGenAI } from "@google/genai";
 
 // Validate API Key availability immediately
-if (!process.env.API_KEY) {
-  console.error("Missing process.env.API_KEY. Application functionality will be limited.");
-}
+//if (!process.env.API_KEY) {
+//  console.error("Missing process.env.API_KEY. Application functionality will be limited.");
+//}
 
 const rootElement = document.getElementById('root');
 if (!rootElement) {
